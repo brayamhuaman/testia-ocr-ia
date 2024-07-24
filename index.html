@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Poemas</title>
+</head>
+<body>
+    <h1>Generador de Poemas</h1>
+    <form id="poemForm">
+        <textarea id="textInput" placeholder="Ingresa tu texto aquí..."></textarea>
+        <input type="file" id="imageInput">
+        <button type="submit">Generar Poema</button>
+    </form>
+    <div id="poemResult"></div>
+
+    <script>
+        document.getElementById('poemForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            let text = document.getElementById('textInput').value;
+            let image = document.getElementById('imageInput').files[0];
+
+            let formData = new FormData();
+            if (text) {
+                formData.append('text', text);
+            }
+            if (image) {
+                let reader = new FileReader();
+                reader.readAsDataURL(image);
+                reader.onload = async () => {
+                    let imageBase64 = reader.result.split(',')[1];
+                    let response = await fetch('/generate_poem', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ image: imageBase64 })
+                    });
+                    let result = await response.json();
+                    document.getElementById('poemResult').innerText = result.poem;
+                }
+            } else {
+                let response = await fetch('/generate_poem', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ text: text })
+                });
+                let result = await response.json();
+                document.getElementById('poemResult').innerText = result.poem;
+            }
+        });
+    </script>
+</body>
+</html>
